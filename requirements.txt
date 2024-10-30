@@ -1,0 +1,11 @@
+--find-links https://download.pytorch.org/whl/torch_stable.html
+streamlit==1.38.0
+torch==2.3.0+cpu
+torchvision==0.18.0+cpu
+pandas==2.2.2
+scikit-learn==1.5.1
+pillow==10.4.0
+PyYAML==6.0.0
+# tqdm
+# matplotlib
+# kagglehub
