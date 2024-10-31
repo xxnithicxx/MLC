@@ -3,6 +3,19 @@ import torch.nn as nn
 from torch.nn.functional import relu
 from src.config import CONFIG
 
+# Source: https://github.com/Alibaba-MIIL/ML_Decoder/blob/main/src_files/ml_decoder/ml_decoder.py
+
+def add_ml_decoder_head(model, num_classes, num_of_groups=-1, decoder_embedding=768, zsl=0):
+    if num_classes == -1:
+        num_classes = model.num_classes
+        
+    # Set num_features manually for ResNet-50 (output of the last conv layer)
+    num_features = 2048
+    model.fc = MLDecoder(num_classes=num_classes, initial_num_features=num_features,
+                         num_of_groups=num_of_groups, decoder_embedding=decoder_embedding, zsl=zsl)
+
+    return model
+
 class GroupFC:
     def __init__(self, embed_len_decoder):
         self.embed_len_decoder = embed_len_decoder
@@ -45,7 +58,10 @@ class MLDecoder(nn.Module):
         query_embed = self.query_embed.weight if self.query_embed else None
         tgt = query_embed.unsqueeze(1).expand(-1, bs, -1)
 
-        h = self.decoder(tgt, embedding_spatial.unsqueeze(0).transpose(0, 1)).transpose(0, 1)
+        if self.training:
+            h = self.decoder(tgt, embedding_spatial.unsqueeze(0)).transpose(0, 1)
+        else:
+            h = self.decoder(tgt, embedding_spatial.unsqueeze(0).transpose(0, 1)).transpose(0, 1)
 
         out_extrap = torch.zeros(
             h.shape[0], h.shape[1], self.decoder.duplicate_pooling.shape[2], device=h.device, dtype=h.dtype

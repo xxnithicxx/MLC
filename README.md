@@ -23,9 +23,13 @@ project-folder/
 │   └── utils.py               # Utility functions (e.g., for visualization)
 ├── notebooks/                 # Jupyter notebooks for experimentation
 │   └── data_analysis.ipynb    # Example notebook for EDA
+├── checkpoints/               # Directory to store model checkpoints
+│   └── best_model.pth         # Example model checkpoint
 ```
 
 ## Project Setup
+
+Download the dataset from [Kaggle](https://www.kaggle.com/datasets/meherunnesashraboni/multi-label-image-classification-dataset) and place it in the `data` folder and extract it.
 
 ```bash
 git clone

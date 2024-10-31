@@ -1,11 +1,13 @@
 # General Configuration
 project_name: "Multi-Label Image Classification"
-device: "cpu"  # Use 'cpu' if GPU is not available
+device: "cuda:0"  # Use 'cpu' if GPU is not available
 
 # Paths
 data_dir: "data/multilabel_modified"
 images_dir: "data/multilabel_modified/images"
 csv_file: "data/multilabel_modified/multilabel_classification(6)-reduced_modified.csv"
+checkpoints_dir: "checkpoints"
+logs_dir: "logs"
 
 # Data Configuration
 image_size: [128, 128]  # Resize images to this size
@@ -17,26 +19,22 @@ random_state: 42  # Random seed for reproducibility
 epochs: 10  # Number of training epochs
 learning_rate: 0.001  # Initial learning rate
 weight_decay: 0.00001  # Weight decay for the optimizer
-backbone_model_name: "resnet50"  # Backbone model
+model_name: "resnet50"  # Backbone model
+save_model_every_n_epochs: 5  # Save checkpoint every n epochs
 
-# ML Decoder Model Configuration
+# Model Parameters
 ml_decoder:
   num_classes: 10  # Number of target classes
-  initial_num_features: 1000  # Features input to ML Decoder, this number base on backbone
+  initial_num_features: 1000  # Features input to ML Decoder
   decoder_embedding: 768  # Decoder embedding size
   num_groups: -1  # Number of groups (use -1 for default)
 
-# C2AE Model Configuration
 c2ae:
   latent_dim: 16  # Latent dimension size
   alpha: 0.5  # Weight for correlation loss
   beta: 1.0  # Weight for latent loss
   embedding_lambda: 0.5  # Regularization parameter
 
-# Logging and Checkpoints
-save_model_every_n_epochs: 5  # Save checkpoint every n epochs
-log_frequency: 10  # Log training progress every n steps
-
-# Visualization
-label_threshold: 0.5  # Threshold for label prediction
+# Inference Configuration
+label_threshold: 0.5  # Threshold for label prediction during inference
 top_k_labels: 3  # Display top-K predicted labels during visualization

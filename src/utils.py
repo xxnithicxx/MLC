@@ -2,6 +2,7 @@ import torch
 from PIL import Image
 from src.config import CONFIG
 import streamlit as st
+import os
 
 def load_image(image_path, transform=None):
     """
@@ -40,3 +41,69 @@ def set_device():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
     return device
+
+def save_checkpoint(model, optimizer, epoch, loss, path):
+    """
+    Save the model's state to a checkpoint file.
+
+    Args:
+        model (torch.nn.Module): The model to save.
+        optimizer (torch.optim.Optimizer): The optimizer used during training.
+        epoch (int): The current epoch number.
+        loss (float): The current loss value.
+        path (str): The path to save the checkpoint file.
+    """
+    # Prepare checkpoint data
+    checkpoint = {
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss
+    }
+
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    
+    # Save the checkpoint
+    torch.save(checkpoint, path)
+    print(f"Checkpoint saved at {path}")
+
+def load_checkpoint(model, optimizer, path):
+    """
+    Load the model and optimizer states from a checkpoint file.
+
+    Args:
+        model (torch.nn.Module): The model to load the state into.
+        optimizer (torch.optim.Optimizer): The optimizer to load the state into (can be None for inference).
+        path (str): The path to the checkpoint file.
+
+    Returns:
+        tuple: The epoch and loss saved in the checkpoint (or None if not applicable).
+    """
+    if not path or not torch.cuda.is_available() and not torch.is_available():
+        raise FileNotFoundError(f"Checkpoint file not found at: {path}")
+
+    # Load the checkpoint
+    checkpoint = torch.load(path, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
+    model.load_state_dict(checkpoint['model_state_dict'])
+    if optimizer:
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    
+    epoch = checkpoint.get('epoch', None)
+    loss = checkpoint.get('loss', None)
+
+    print(f"Loaded checkpoint from {path} (epoch {epoch}, loss {loss})")
+    return epoch, loss
+
+# Function to load checkpoint while ignoring missing keys for the new head
+def load_checkpoint_partial(model, checkpoint_path):
+    checkpoint = torch.load(checkpoint_path, map_location="cpu")
+    model_dict = model.state_dict()
+
+    # Filter out unnecessary keys from the checkpoint
+    filtered_checkpoint = {k: v for k, v in checkpoint.items() if k in model_dict}
+    model_dict.update(filtered_checkpoint)
+    model.load_state_dict(model_dict)
+
+    print("Loaded backbone weights and initialized MLDecoder head.")
+    return model
